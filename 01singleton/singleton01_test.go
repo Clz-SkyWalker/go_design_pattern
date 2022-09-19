@@ -11,14 +11,24 @@ type OnlyOne struct {
 }
 
 // 饿汉式
-var single = OnlyOne{name: "t1"}
+var Single = OnlyOne{name: "t1"}
+var single1 = OnlyOne{name: "t2"}
+var Single3 OnlyOne
+
+func init() {
+	Single3 = OnlyOne{name: "t3"}
+}
 
 func GetOnlyOne() OnlyOne {
-	return single
+	return single1
 }
 
 func TestSingle1(t *testing.T) {
-	s := GetOnlyOne()
+	s := Single
+	fmt.Println(s.name)
+	s = GetOnlyOne()
+	fmt.Println(s.name)
+	s = Single3
 	fmt.Println(s.name)
 }
 
