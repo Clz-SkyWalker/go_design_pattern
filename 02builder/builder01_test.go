@@ -5,105 +5,140 @@ import (
 	"testing"
 )
 
-type Profile struct {
-	id   int
-	name string
-	age  int
+type Robot struct {
+	Head string `json:"head"`
+	Body string `json:"body"`
+	Hand string `json:"hand"`
+	Foot string `json:"foot"`
 }
 
 // builder 1
-func NewProfileBuilder() ProfileBuilder {
-	return ProfileBuilder{profile: Profile{}}
+type IRobot interface {
+	SetHead()
+	SetBody()
+	SetHand()
+	SetFoot()
+	Build() string
 }
 
-type ProfileBuilder struct {
-	profile Profile
+type GunDam struct {
+	robot Robot
 }
 
-func (b ProfileBuilder) WithId(id int) ProfileBuilder {
-	b.profile.id = id
-	return b
-}
-func (b ProfileBuilder) WithName(name string) ProfileBuilder {
-	b.profile.name = name
-	return b
-}
-func (b ProfileBuilder) WithAge(age int) ProfileBuilder {
-	b.profile.age = age
-	return b
+func (m *GunDam) SetHead() {
+	m.robot.Head = "GunDam"
 }
 
-func (b ProfileBuilder) build() Profile {
-	return b.profile
+func (m *GunDam) SetBody() {
+	m.robot.Body = "body"
+}
+
+func (m *GunDam) SetHand() {
+	m.robot.Hand = "hand"
+}
+
+func (m *GunDam) SetFoot() {
+	m.robot.Foot = "foot"
+}
+func (m *GunDam) Build() string {
+	return fmt.Sprintf("%+v", m.robot)
+}
+
+type DaBanModel struct {
+	robot Robot
+}
+
+func (m *DaBanModel) SetHead() {
+	m.robot.Head = "daBan"
+}
+
+func (m *DaBanModel) SetBody() {
+	m.robot.Body = "body"
+}
+
+func (m *DaBanModel) SetHand() {
+	m.robot.Hand = "hand"
+}
+
+func (m *DaBanModel) SetFoot() {
+	m.robot.Foot = "foot"
+}
+func (m *DaBanModel) Build() string {
+	return fmt.Sprintf("%+v", m.robot)
+}
+
+func NewPlayer(builder IRobot) Player {
+	return Player{
+		builder: builder,
+	}
+}
+
+type Player struct {
+	builder IRobot
+}
+
+func (p Player) MakeFast() string {
+	p.builder.SetHead()
+	p.builder.SetBody()
+	return p.builder.Build()
+}
+
+func (p Player) MakeSlow() string {
+	p.builder.SetHead()
+	p.builder.SetBody()
+	p.builder.SetHand()
+	p.builder.SetFoot()
+	return p.builder.Build()
 }
 
 func TestBuilder1(t *testing.T) {
-	builder := NewProfileBuilder()
-	fmt.Println(builder.WithId(1).WithAge(2).WithName("t").build().age)
+	var robot IRobot
+	robot = new(GunDam)
+	player := NewPlayer(robot)
+	fmt.Println(player.MakeFast())
 }
 
-// builder 2
-type ProfileOption func(*Profile)
+// builder2 functional option
+type RobotOption func(*Robot)
 
-func NewBuilder2(options ...ProfileOption) Profile {
-	p := &Profile{}
+func SetHeadOption(head string) RobotOption {
+	return func(robot *Robot) {
+		robot.Head = head
+	}
+}
+
+func SetBodyOption(body string) RobotOption {
+	return func(robot *Robot) {
+		robot.Body = body
+	}
+}
+func SetHandOption(hand string) RobotOption {
+	return func(robot *Robot) {
+		robot.Hand = hand
+	}
+}
+func SetFootOption(foot string) RobotOption {
+	return func(robot *Robot) {
+		robot.Foot = foot
+	}
+}
+
+func NewRobotBuilder2(options ...RobotOption) string {
+	robot := new(Robot)
 	for _, option := range options {
-		option(p)
+		option(robot)
 	}
-	return *p
+	return fmt.Sprintf("%+v", robot)
 }
 
-func SetId(id int) ProfileOption {
-	return func(p *Profile) {
-		p.id = id
-	}
+func TestBuilder2FunctionalOption(t *testing.T) {
+	option1 := SetHeadOption("functional option")
+	option2 := SetBodyOption("body")
+	result := NewRobotBuilder2(option1, option2)
+	fmt.Println(result)
 }
 
-func SetName(name string) ProfileOption {
-	return func(p *Profile) {
-		p.name = name
-	}
-}
-
-func TestBuilder2(t *testing.T) {
-	fmt.Println(NewBuilder2(SetId(1), SetName("t")).name)
-}
-
-// builder 3 fluent api
 type (
-	IdBuilder interface {
-		SetId(id int) NameBuilder
-	}
-	NameBuilder interface {
-		SetName(name string) EndBuilder
-	}
-	EndBuilder interface {
-		Build() Profile
-	}
-
-	BuilderStruct struct {
-		p Profile
+	IHeader interface {
 	}
 )
-
-func (b BuilderStruct) SetId(id int) NameBuilder {
-	b.p.id = id
-	return b
-}
-
-func (b BuilderStruct) SetName(name string) EndBuilder {
-	b.p.name = name
-	return b
-}
-
-func (b BuilderStruct) Build() Profile {
-	return b.p
-}
-
-func NewBuilder3() IdBuilder {
-	return BuilderStruct{}
-}
-
-func TestBuilder3(t *testing.T) {
-	fmt.Println(NewBuilder3().SetId(1).SetName("t").Build().name)
-}
