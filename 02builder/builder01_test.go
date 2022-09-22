@@ -96,6 +96,9 @@ func TestBuilder1(t *testing.T) {
 	robot = new(GunDam)
 	player := NewPlayer(robot)
 	fmt.Println(player.MakeFast())
+	robot = new(DaBanModel)
+	player = NewPlayer(robot)
+	fmt.Println(player.MakeSlow())
 }
 
 // builder2 functional option
@@ -134,11 +137,58 @@ func NewRobotBuilder2(options ...RobotOption) string {
 func TestBuilder2FunctionalOption(t *testing.T) {
 	option1 := SetHeadOption("functional option")
 	option2 := SetBodyOption("body")
-	result := NewRobotBuilder2(option1, option2)
+	option3 := SetHandOption("hand")
+	option4 := SetFootOption("foot")
+	result := NewRobotBuilder2(option1, option2, option3, option4)
 	fmt.Println(result)
 }
 
 type (
 	IHeader interface {
+		SetHead(string) IBody
+	}
+	IBody interface {
+		SetBody(string) IHand
+	}
+	IHand interface {
+		SetHand(string) IFoot
+	}
+	IFoot interface {
+		SetFoot(string) IBuild
+	}
+	IBuild interface {
+		Build3Robot() string
+	}
+	Build3 struct {
+		Robot
 	}
 )
+
+func (b *Build3) SetHead(p string) IBody {
+	b.Hand = p
+	return b
+}
+func (b *Build3) SetBody(p string) IHand {
+	b.Body = p
+	return b
+}
+func (b *Build3) SetHand(p string) IFoot {
+	b.Hand = p
+	return b
+}
+func (b *Build3) SetFoot(p string) IBuild {
+	b.Foot = p
+	return b
+}
+func (b *Build3) Build3Robot() string {
+	return fmt.Sprintf("%+v", b)
+}
+
+func NewBuild3() IHeader {
+	return &Build3{}
+}
+
+func TestBuild3(t *testing.T) {
+	result := NewBuild3().SetHead("da ban").SetBody("body").SetHand("hand").SetFoot("foot").Build3Robot()
+	fmt.Println(result)
+}
